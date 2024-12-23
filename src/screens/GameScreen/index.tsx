@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import {cards} from '../../data/cards';
 import {Card, CardPlaceholder} from '../../types';
@@ -6,6 +6,154 @@ import {useTranslation} from 'react-i18next';
 import CardItem from '../../components/Card';
 import {useAppSettingsContext} from '../../context/AppSettingsContext';
 import {usePlayer} from '../../context/PlayerContext';
+
+const GameScreen = ({navigation}: any) => {
+  const {settings} = useAppSettingsContext();
+  const {player, levelUp, saveScore} = usePlayer();
+  const styles = getStyles(settings.theme);
+  const {t} = useTranslation();
+
+  const sixCards = cards.slice(0, 6);
+
+  const sortedCards = [...sixCards].sort((a, b) => a.value - b.value);
+
+  const [shuffledCards, setShuffledCards] = useState<Card[]>([]);
+  const [timeline, setTimeline] = useState<(Card | CardPlaceholder)[]>([]);
+  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+  const [score, setScore] = useState<number>(0);
+
+  useEffect(() => {
+    resetGame();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const resetGame = () => {
+    setShuffledCards([...sortedCards].sort(() => Math.random() - 0.5));
+    const placeholders = sortedCards.map(c => ({value: c.value}));
+    setTimeline(placeholders);
+    setSelectedCard(null);
+    setScore(0);
+  };
+
+  const handleCardSelect = (card: Card) => {
+    setSelectedCard(prev => (prev?.id === card.id ? null : card));
+  };
+
+  const handlePlaceholderClick = (index: number) => {
+    if (!selectedCard) {
+      return;
+    }
+
+    const newTimeline = [...timeline];
+    const placeholder = newTimeline[index];
+
+    if (selectedCard.value !== placeholder.value) {
+      const newScore = score - 5;
+      setScore(newScore); // Odejmujemy punkty za zły ruch
+      if (newScore < 0) {
+        Alert.alert('Koniec gry!', 'Twoje punkty spadły poniżej zera!', [
+          {text: 'Nowa gra', onPress: resetGame},
+          {text: 'Menu główne', onPress: backToMenu},
+        ]);
+      }
+      return;
+    }
+
+    if (newTimeline[index] && 'title' in newTimeline[index]) {
+      return;
+    }
+
+    newTimeline[index] = selectedCard;
+    setShuffledCards(prev => prev.filter(c => c.id !== selectedCard.id));
+    setTimeline(newTimeline);
+
+    const newScore = score + 10;
+    setScore(newScore); // Dodajemy punkty za dobry ruch
+    setSelectedCard(null);
+
+    checkForWin(newTimeline, newScore); // Przekazujemy nowy wynik
+  };
+
+  const checkForWin = (
+    currentTimeline: (Card | CardPlaceholder)[],
+    currentScore: number,
+  ) => {
+    const isCorrect = currentTimeline.every(
+      (item, index) =>
+        item &&
+        'value' in item &&
+        'title' in item &&
+        item.title === sortedCards[index].title,
+    );
+
+    if (isCorrect) {
+      levelUp();
+      saveScore(currentScore);
+      Alert.alert(
+        'Gratulacje!',
+        `Wygrałeś grę! Twój wynik to: ${currentScore} punktów.`,
+        [
+          {text: 'Nowa gra', onPress: resetGame},
+          {text: 'Menu główne', onPress: backToMenu},
+        ],
+      );
+    }
+  };
+
+  function backToMenu() {
+    resetGame();
+    navigation.navigate('Home');
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.header}>
+          {t('level')}: {player.level}
+        </Text>
+        <Text style={styles.score}>
+          {t('score')}: {score}
+        </Text>
+      </View>
+
+      <View style={styles.timeline}>
+        {timeline.map((card, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.placeholder,
+              'title' in card
+                ? styles.occupiedPlaceholder
+                : styles.emptyPlaceholder,
+            ]}
+            onPress={() => handlePlaceholderClick(index)}>
+            <Text style={styles.cardText}>
+              {'title' in card ? t(card.title) : ''}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Text style={styles.subHeader}> {t('chooseCard')}:</Text>
+      <View style={styles.cardsContainer}>
+        {shuffledCards.map(card => (
+          <CardItem
+            key={card.id}
+            card={card}
+            isSelected={selectedCard?.id === card.id}
+            onSelect={handleCardSelect}
+            theme={settings.theme}
+          />
+        ))}
+      </View>
+      <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+        <Text style={styles.resetButtonText}>{t('resetGame')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.backButton} onPress={backToMenu}>
+        <Text style={styles.backButtonText}>{t('backToMenu')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 function getStyles(theme: 'light' | 'dark') {
   const isDark = theme === 'dark';
@@ -16,19 +164,24 @@ function getStyles(theme: 'light' | 'dark') {
       backgroundColor: isDark ? '#121212' : '#f8f8f8', // Tło zależne od motywu
       justifyContent: 'flex-start',
     },
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+      marginBottom: 10,
+    },
     header: {
       fontSize: 20,
       fontWeight: '700',
       textAlign: 'center',
       color: isDark ? '#ffffff' : '#333', // Kolor nagłówka
-      marginBottom: 10,
     },
     score: {
       fontSize: 18,
       fontWeight: '700',
-      textAlign: 'center',
+      textAlign: 'right',
       color: isDark ? '#81c784' : '#4caf50', // Kolor punktacji
-      marginBottom: 10,
     },
     subHeader: {
       fontSize: 18,
@@ -104,141 +257,5 @@ function getStyles(theme: 'light' | 'dark') {
     },
   });
 }
-
-const GameScreen = ({navigation}: any) => {
-  const {settings} = useAppSettingsContext();
-  const {player, addExperience} = usePlayer();
-  const styles = getStyles(settings.theme);
-  const {t} = useTranslation();
-  const sortedCards = useMemo(() => {
-    return [...cards].sort((a, b) => a.value - b.value);
-  }, [cards]);
-  const sixCards = useMemo(() => sortedCards.slice(0, 6), [sortedCards]);
-
-  const [shuffledCards, setShuffledCards] = useState<Card[]>([]);
-  const [timeline, setTimeline] = useState<(Card | CardPlaceholder)[]>([]);
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const [score, setScore] = useState<number>(0);
-
-  useEffect(() => {
-    resetGame();
-  }, []);
-
-  const resetGame = () => {
-    setShuffledCards([...sixCards].sort(() => Math.random() - 0.5));
-    const placeholders = sixCards.map(c => ({value: c.value}));
-    setTimeline(placeholders);
-    setSelectedCard(null);
-    setScore(0);
-  };
-
-  const handleCardSelect = (card: Card) => {
-    setSelectedCard(prev => (prev?.id === card.id ? null : card));
-  };
-
-  const handlePlaceholderClick = (index: number) => {
-    if (!selectedCard) return;
-
-    const newTimeline = [...timeline];
-    const placeholder = newTimeline[index];
-
-    if (selectedCard.value !== placeholder.value) {
-      const newScore = score - 5;
-      setScore(newScore); // Odejmujemy punkty za zły ruch
-      if (newScore < 0) {
-        Alert.alert('Koniec gry!', 'Twoje punkty spadły poniżej zera!', [
-          {text: 'Nowa gra', onPress: resetGame},
-          {text: 'Menu główne', onPress: backToMenu},
-        ]);
-      }
-      return;
-    }
-
-    if (newTimeline[index] && 'title' in newTimeline[index]) return;
-
-    newTimeline[index] = selectedCard;
-    setShuffledCards(prev => prev.filter(c => c.id !== selectedCard.id));
-    setTimeline(newTimeline);
-
-    const newScore = score + 10;
-    setScore(newScore); // Dodajemy punkty za dobry ruch
-    setSelectedCard(null);
-
-    checkForWin(newTimeline, newScore); // Przekazujemy nowy wynik
-  };
-
-  const checkForWin = (
-    currentTimeline: (Card | CardPlaceholder)[],
-    currentScore: number,
-  ) => {
-    const isCorrect = currentTimeline.every(
-      (item, index) =>
-        item &&
-        'value' in item &&
-        'title' in item &&
-        item.title === sixCards[index].title,
-    );
-
-    if (isCorrect) {
-      Alert.alert(
-        'Gratulacje!',
-        `Wygrałeś grę! Twój wynik to: ${currentScore} punktów.`,
-        [
-          {text: 'Nowa gra', onPress: resetGame},
-          {text: 'Menu główne', onPress: backToMenu},
-        ],
-      );
-    }
-  };
-
-  function backToMenu() {
-    resetGame();
-    navigation.navigate('Home');
-  }
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.header}>{t('arrangeCards')}</Text>
-      <Text style={styles.score}>
-        {t('score')}: {score}
-      </Text>
-      <View style={styles.timeline}>
-        {timeline.map((card, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.placeholder,
-              'title' in card
-                ? styles.occupiedPlaceholder
-                : styles.emptyPlaceholder,
-            ]}
-            onPress={() => handlePlaceholderClick(index)}>
-            <Text style={styles.cardText}>
-              {'title' in card ? t(card.title) : ''}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <Text style={styles.subHeader}> {t('chooseCard')}:</Text>
-      <View style={styles.cardsContainer}>
-        {shuffledCards.map(card => (
-          <CardItem
-            key={card.id}
-            card={card}
-            isSelected={selectedCard?.id === card.id}
-            onSelect={handleCardSelect}
-            theme={settings.theme}
-          />
-        ))}
-      </View>
-      <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
-        <Text style={styles.resetButtonText}>{t('resetGame')}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.backButton} onPress={backToMenu}>
-        <Text style={styles.backButtonText}>{t('backToMenu')}</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
 
 export default GameScreen;

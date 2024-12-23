@@ -15,7 +15,6 @@ type SettingsProviderProps = {
 interface AppSettings {
   theme: 'light' | 'dark';
   language: string;
-  difficultyLevel: 'easy' | 'medium' | 'hard';
 }
 
 // Typ kontekstu
@@ -36,7 +35,6 @@ export const AppSettingsProvider: React.FC<SettingsProviderProps> = ({
   const [settings, setSettings] = useState<AppSettings>({
     theme: 'light',
     language: 'en',
-    difficultyLevel: 'easy',
   });
 
   // Funkcja do zapisywania ustawień w AsyncStorage

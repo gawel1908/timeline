@@ -5,18 +5,13 @@
   "yourName": "Your Name",
   "startGameWelcome": "Welcome to the game",
   "language": "Language",
-  "difficultyLevel": "Difficulty Level",
   "settings": "Settings",
-  "easy": "Easy",
-  "medium": "Medium",
-  "hard": "Hard",
   "gameTheme": "Game Theme",
   "light": "Light",
   "dark": "Dark",
   "enableSound": "Enable Sound",
   "startGame": "Start Game",
   "score": "Score",
-  "arrangeCards": "Arrange the cards in the correct order",
   "chooseCard": "Choose a card",
   "cards": {
     "1": "Invention of Printing",
@@ -84,6 +79,6 @@
   "save": "Save",
   "level": "Level",
   "name": "Name",
-  "experience": "Experience",
-  "changeName": "Change Name"
+  "changeName": "Change Name",
+  "achievements": "Achievements"
 }

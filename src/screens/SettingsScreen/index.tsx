@@ -30,62 +30,12 @@ const SettingsScreen = ({navigation}: any) => {
     }));
   };
 
-  const handleDifficultyLevelChange = () => {
-    const difficultyLevels: ('easy' | 'medium' | 'hard')[] = [
-      'easy',
-      'medium',
-      'hard',
-    ];
-
-    setSettings(prev => {
-      const currentDifficultyIndex = difficultyLevels.indexOf(
-        prev.difficultyLevel,
-      );
-      const nextDifficultyIndex =
-        currentDifficultyIndex === difficultyLevels.length - 1
-          ? 0
-          : currentDifficultyIndex + 1;
-
-      return {
-        ...prev,
-        difficultyLevel: difficultyLevels[nextDifficultyIndex],
-      };
-    });
-  };
-
   const handleSaveSettings = async () => {
     try {
       await saveSettingsToStorage();
       Alert.alert(t('settingsSaved')); // Powiadomienie użytkownika o zapisaniu ustawień
     } catch (error) {
       console.error('Error saving settings:', error);
-    }
-  };
-
-  const getDifficultyButtonColor = (difficulty: 'easy' | 'medium' | 'hard') => {
-    switch (difficulty) {
-      case 'easy':
-        return '#4CAF50'; // Zielony
-      case 'medium':
-        return '#FFEB3B'; // Żółty
-      case 'hard':
-        return '#F44336'; // Czerwony
-      default:
-        return '#4CAF50'; // Domyślny kolor
-    }
-  };
-
-  const getDifficultyButtonTextColor = (
-    difficulty: 'easy' | 'medium' | 'hard',
-  ) => {
-    switch (difficulty) {
-      case 'easy':
-      case 'hard':
-        return '#fff'; // Biały tekst
-      case 'medium':
-        return '#333'; // Ciemny tekst
-      default:
-        return '#fff';
     }
   };
 
@@ -103,12 +53,6 @@ const SettingsScreen = ({navigation}: any) => {
     }
   };
 
-  const difficultyButtonColor = getDifficultyButtonColor(
-    settings.difficultyLevel,
-  );
-  const difficultyButtonTextColor = getDifficultyButtonTextColor(
-    settings.difficultyLevel,
-  );
   const themeButtonStyles = getThemeButtonStyles();
 
   return (
@@ -123,18 +67,6 @@ const SettingsScreen = ({navigation}: any) => {
           onPress={handleChangeLanguage}>
           <Text style={[styles.buttonText, styles.languageButtonText]}>
             {settings.language === 'en' ? 'EN' : 'PL'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Poziom trudności */}
-      <View style={styles.setting}>
-        <Text style={styles.settingText}>{t('difficultyLevel')}</Text>
-        <TouchableOpacity
-          style={[styles.button, {backgroundColor: difficultyButtonColor}]}
-          onPress={handleDifficultyLevelChange}>
-          <Text style={[styles.buttonText, {color: difficultyButtonTextColor}]}>
-            {t(settings.difficultyLevel)}
           </Text>
         </TouchableOpacity>
       </View>

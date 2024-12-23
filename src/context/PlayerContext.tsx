@@ -7,80 +7,68 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface Player {
+type Player = {
   name: string;
-  experience: number;
   level: number;
-  unlockedAddons: string[];
-}
+  totalScore: number;
+  achievements: string[];
+};
 
-interface PlayerContextType {
+type PlayerContextType = {
   player: Player;
-  addExperience: (xp: number) => void;
+  levelUp: () => void;
   setPlayerName: (name: string) => Promise<void>;
-}
+  saveScore: (score: number) => void;
+};
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export const PlayerProvider: React.FC<{children: ReactNode}> = ({children}) => {
   const [player, setProgress] = useState<Player>({
     name: '',
-    experience: 0,
     level: 1,
-    unlockedAddons: [],
+    totalScore: 0,
+    achievements: [],
   });
 
-  // Odczytaj nazwę gracza z AsyncStorage podczas uruchamiania aplikacji
+  async function loadPlayerName() {
+    const storedName = await AsyncStorage.getItem('playerName');
+    const storedLevel = (await AsyncStorage.getItem('playerLevel')) || '1';
+    const storedScore = (await AsyncStorage.getItem('playerScore')) || '0';
+    if (storedName) {
+      setProgress(prev => ({
+        ...prev,
+        name: storedName,
+        level: Number(storedLevel),
+        totalScore: Number(storedScore),
+      }));
+    }
+  }
+
+  async function levelUp() {
+    await AsyncStorage.setItem('playerLevel', (player.level + 1).toString());
+    setProgress(prev => ({...prev, level: prev.level + 1}));
+  }
+
+  async function setPlayerName(name: string) {
+    await AsyncStorage.setItem('playerName', name);
+    setProgress(prev => ({...prev, name}));
+  }
+
+  async function saveScore(score: number) {
+    await AsyncStorage.setItem(
+      'playerScore',
+      (player.totalScore + score).toString(),
+    );
+    setProgress(prev => ({...prev, totalScore: prev.totalScore + score}));
+  }
+
   useEffect(() => {
-    const loadPlayerName = async () => {
-      const storedName = await AsyncStorage.getItem('playerName');
-      if (storedName) {
-        setProgress(prev => ({...prev, name: storedName}));
-      }
-    };
     loadPlayerName();
   }, []);
 
-  const addExperience = (xp: number) => {
-    setProgress(prev => {
-      const newExperience = prev.experience + xp;
-      const xpForNextLevel = calculateXPForNextLevel(prev.level);
-
-      if (newExperience >= xpForNextLevel) {
-        return {
-          ...prev,
-          experience: newExperience - xpForNextLevel,
-          level: prev.level + 1,
-          unlockedAddons: unlockAddon(prev.level + 1, prev.unlockedAddons),
-        };
-      }
-
-      return {...prev, experience: newExperience};
-    });
-  };
-
-  const setPlayerName = async (name: string) => {
-    await AsyncStorage.setItem('playerName', name);
-    setProgress(prev => ({...prev, name}));
-  };
-
-  const unlockAddon = (level: number, unlockedAddons: string[]) => {
-    const addonsToUnlock: Record<number, string> = {
-      2: 'New Avatar',
-      5: 'Special Card Skin',
-      10: 'Bonus Feature',
-    };
-
-    const newAddon = addonsToUnlock[level];
-    return newAddon ? [...unlockedAddons, newAddon] : unlockedAddons;
-  };
-
-  const calculateXPForNextLevel = (level: number): number => {
-    return 100 + level * 50;
-  };
-
   return (
-    <PlayerContext.Provider value={{player, addExperience, setPlayerName}}>
+    <PlayerContext.Provider value={{player, levelUp, setPlayerName, saveScore}}>
       {children}
     </PlayerContext.Provider>
   );

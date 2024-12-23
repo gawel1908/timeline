@@ -5,18 +5,13 @@
   "yourName": "Twoja nazwa",
   "startGameWelcome": "Witaj w grze",
   "language": "Język",
-  "difficultyLevel": "Poziom trudności",
   "settings": "Ustawienia",
-  "easy": "Łatwy",
-  "medium": "Średni",
-  "hard": "Trudny",
   "gameTheme": "Motyw gry",
   "light": "Jasny",
   "dark": "Ciemny",
   "enableSound": "Włącz dźwięk",
   "startGame": "Rozpocznij grę",
   "score": "Wynik",
-  "arrangeCards": "Ułóż karty według odpowiedniej kolejności",
   "chooseCard": "Wybierz kartę",
   "cards": {
     "1": "Wynalezienie druku",
@@ -84,6 +79,6 @@
   "save": "Zapisz",
   "level": "Poziom",
   "name": "Imię",
-  "experience": "Doświadczenie",
-  "changeName": "Zmień imię"
+  "changeName": "Zmień imię",
+  "achievements": "Osiągnięcia"
 }

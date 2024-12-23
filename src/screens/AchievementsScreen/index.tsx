@@ -11,7 +11,7 @@ import {usePlayer} from '../../context/PlayerContext';
 import {useAppSettingsContext} from '../../context/AppSettingsContext';
 import {useTranslation} from 'react-i18next';
 
-const ProfileScreen: React.FC = ({navigation}: any) => {
+const AchievementsScreen: React.FC = ({navigation}: any) => {
   const {t} = useTranslation();
   const {settings} = useAppSettingsContext();
   const {player, setPlayerName} = usePlayer(); // Pobieramy dane o graczu i funkcję zmiany imienia
@@ -54,8 +54,8 @@ const ProfileScreen: React.FC = ({navigation}: any) => {
         <Text style={styles.value}>{player.level}</Text>
       </View>
       <View style={styles.infoContainer}>
-        <Text style={styles.label}>{t('experience')}: </Text>
-        <Text style={styles.value}>{player.experience}</Text>
+        <Text style={styles.label}>{t('score')}: </Text>
+        <Text style={styles.value}>{player.totalScore}</Text>
       </View>
 
       {/* Pole do edycji imienia */}
@@ -159,4 +159,4 @@ const getStyles = (theme: 'light' | 'dark') => {
   });
 };
 
-export default ProfileScreen;
+export default AchievementsScreen;

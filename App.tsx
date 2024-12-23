@@ -11,7 +11,7 @@ import RegisterScreen from './src/screens/RegisterScreen'; // Dodaj ten ekran
 import {AppSettingsProvider} from './src/context/AppSettingsContext';
 import {PlayerProvider} from './src/context/PlayerContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ProfileScreen from './src/screens/ProfileScreen';
+import AchievementsScreen from './src/screens/AchievementsScreen';
 
 const Stack = createStackNavigator();
 
@@ -54,8 +54,8 @@ const App: React.FC = () => {
               options={{headerShown: false}}
             />
             <Stack.Screen
-              name="ProfileScreen"
-              component={ProfileScreen}
+              name="AchievementsScreen"
+              component={AchievementsScreen}
               options={{headerShown: false}}
             />
             <Stack.Screen

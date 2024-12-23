@@ -1,6 +1,6 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useAppSettingsContext} from '../../context/AppSettingsContext';
 import {usePlayer} from '../../context/PlayerContext';
 
@@ -28,8 +28,8 @@ const HomeScreen = ({navigation}: {navigation: any}) => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('ProfileScreen')}>
-        <Text style={styles.buttonText}>{t('playerProfile')}</Text>
+        onPress={() => navigation.navigate('AchievementsScreen')}>
+        <Text style={styles.buttonText}>{t('achievements')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
