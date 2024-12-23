@@ -18,12 +18,12 @@ const RegisterScreen: React.FC<{navigation: any}> = ({navigation}) => {
   const {setPlayerName} = usePlayer();
   const [name, setName] = useState('');
 
-  const handleSaveName = async () => {
+  async function handleSaveName() {
     if (name.trim()) {
       await setPlayerName(name);
       navigation.replace('Home');
     }
-  };
+  }
 
   return (
     <View style={styles.container}>

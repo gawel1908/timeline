@@ -6,13 +6,7 @@ import React, {
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-type Player = {
-  name: string;
-  level: number;
-  totalScore: number;
-  achievements: string[];
-};
+import {Player} from '../types';
 
 type PlayerContextType = {
   player: Player;
@@ -31,7 +25,7 @@ export const PlayerProvider: React.FC<{children: ReactNode}> = ({children}) => {
     achievements: [],
   });
 
-  async function loadPlayerName() {
+  async function loadPlayeFromStorage() {
     const storedName = await AsyncStorage.getItem('playerName');
     const storedLevel = (await AsyncStorage.getItem('playerLevel')) || '1';
     const storedScore = (await AsyncStorage.getItem('playerScore')) || '0';
@@ -46,7 +40,7 @@ export const PlayerProvider: React.FC<{children: ReactNode}> = ({children}) => {
   }
 
   async function levelUp() {
-    await AsyncStorage.setItem('playerLevel', (player.level + 1).toString());
+    await AsyncStorage.setItem('playerLevel', (1).toString());
     setProgress(prev => ({...prev, level: prev.level + 1}));
   }
 
@@ -64,7 +58,7 @@ export const PlayerProvider: React.FC<{children: ReactNode}> = ({children}) => {
   }
 
   useEffect(() => {
-    loadPlayerName();
+    loadPlayeFromStorage();
   }, []);
 
   return (

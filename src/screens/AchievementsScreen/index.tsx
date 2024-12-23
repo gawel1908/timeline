@@ -20,7 +20,7 @@ const AchievementsScreen: React.FC = ({navigation}: any) => {
 
   const styles = getStyles(settings.theme);
 
-  const handleNameChange = async () => {
+  async function handleNameChange() {
     if (newName.trim().length === 0) {
       Alert.alert('Invalid Name', 'Name cannot be empty.');
       return;
@@ -34,11 +34,11 @@ const AchievementsScreen: React.FC = ({navigation}: any) => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }
 
-  const handleBackToMenu = () => {
+  function handleBackToMenu() {
     navigation.navigate('Home');
-  };
+  }
 
   return (
     <View style={styles.container}>

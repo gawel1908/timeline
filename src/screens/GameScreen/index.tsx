@@ -1,23 +1,21 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
-import {cards} from '../../data/cards';
 import {Card, CardPlaceholder} from '../../types';
 import {useTranslation} from 'react-i18next';
 import CardItem from '../../components/Card';
 import {useAppSettingsContext} from '../../context/AppSettingsContext';
 import {usePlayer} from '../../context/PlayerContext';
+import {getCards} from '../../utils';
 
 const GameScreen = ({navigation}: any) => {
   const {settings} = useAppSettingsContext();
   const {player, levelUp, saveScore} = usePlayer();
+  const {level} = player;
   const styles = getStyles(settings.theme);
   const {t} = useTranslation();
+  const [isMoreThanTenLevels, setIsMoreThanTenLevels] = useState(false);
 
-  const sixCards = cards.slice(0, 6);
-
-  const sortedCards = [...sixCards].sort((a, b) => a.value - b.value);
-
-  const [shuffledCards, setShuffledCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<Card[]>([]);
   const [timeline, setTimeline] = useState<(Card | CardPlaceholder)[]>([]);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [score, setScore] = useState<number>(0);
@@ -27,19 +25,23 @@ const GameScreen = ({navigation}: any) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const resetGame = () => {
-    setShuffledCards([...sortedCards].sort(() => Math.random() - 0.5));
-    const placeholders = sortedCards.map(c => ({value: c.value}));
+  function resetGame() {
+    if (level > 10) {
+      setIsMoreThanTenLevels(true);
+    }
+    const chosenCards = getCards(level);
+    const newSortedCards = [...chosenCards].sort((a, b) => a.value - b.value);
+    setCards(chosenCards);
+    const placeholders = newSortedCards.map(c => ({value: c.value}));
     setTimeline(placeholders);
     setSelectedCard(null);
     setScore(0);
-  };
-
-  const handleCardSelect = (card: Card) => {
+  }
+  function handleCardSelect(card: Card) {
     setSelectedCard(prev => (prev?.id === card.id ? null : card));
-  };
+  }
 
-  const handlePlaceholderClick = (index: number) => {
+  function handlePlaceholderClick(index: number) {
     if (!selectedCard) {
       return;
     }
@@ -49,7 +51,7 @@ const GameScreen = ({navigation}: any) => {
 
     if (selectedCard.value !== placeholder.value) {
       const newScore = score - 5;
-      setScore(newScore); // Odejmujemy punkty za zły ruch
+      setScore(newScore);
       if (newScore < 0) {
         Alert.alert('Koniec gry!', 'Twoje punkty spadły poniżej zera!', [
           {text: 'Nowa gra', onPress: resetGame},
@@ -64,41 +66,30 @@ const GameScreen = ({navigation}: any) => {
     }
 
     newTimeline[index] = selectedCard;
-    setShuffledCards(prev => prev.filter(c => c.id !== selectedCard.id));
+    setCards(prev => prev.filter(c => c.id !== selectedCard.id));
     setTimeline(newTimeline);
 
     const newScore = score + 10;
     setScore(newScore); // Dodajemy punkty za dobry ruch
     setSelectedCard(null);
 
-    checkForWin(newTimeline, newScore); // Przekazujemy nowy wynik
-  };
+    checkForWin(newScore); // Przekazujemy nowy wynik
+  }
 
-  const checkForWin = (
-    currentTimeline: (Card | CardPlaceholder)[],
-    currentScore: number,
-  ) => {
-    const isCorrect = currentTimeline.every(
-      (item, index) =>
-        item &&
-        'value' in item &&
-        'title' in item &&
-        item.title === sortedCards[index].title,
-    );
-
-    if (isCorrect) {
+  function checkForWin(currentScore: number) {
+    if (cards.length === 1) {
       levelUp();
       saveScore(currentScore);
       Alert.alert(
         'Gratulacje!',
         `Wygrałeś grę! Twój wynik to: ${currentScore} punktów.`,
         [
-          {text: 'Nowa gra', onPress: resetGame},
+          {text: 'Graj dalej', onPress: resetGame},
           {text: 'Menu główne', onPress: backToMenu},
         ],
       );
     }
-  };
+  }
 
   function backToMenu() {
     resetGame();
@@ -109,7 +100,7 @@ const GameScreen = ({navigation}: any) => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.header}>
-          {t('level')}: {player.level}
+          {t('level')}: {level}
         </Text>
         <Text style={styles.score}>
           {t('score')}: {score}
@@ -117,25 +108,28 @@ const GameScreen = ({navigation}: any) => {
       </View>
 
       <View style={styles.timeline}>
-        {timeline.map((card, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.placeholder,
-              'title' in card
-                ? styles.occupiedPlaceholder
-                : styles.emptyPlaceholder,
-            ]}
-            onPress={() => handlePlaceholderClick(index)}>
-            <Text style={styles.cardText}>
-              {'title' in card ? t(card.title) : ''}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {timeline.map((card, index) => {
+          const year = isMoreThanTenLevels ? '' : card.value;
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.placeholder,
+                'title' in card
+                  ? styles.occupiedPlaceholder
+                  : styles.emptyPlaceholder,
+              ]}
+              onPress={() => handlePlaceholderClick(index)}>
+              <Text style={styles.cardText}>
+                {'title' in card ? t(card.title) : year}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
       <Text style={styles.subHeader}> {t('chooseCard')}:</Text>
       <View style={styles.cardsContainer}>
-        {shuffledCards.map(card => (
+        {cards.map(card => (
           <CardItem
             key={card.id}
             card={card}
@@ -146,8 +140,9 @@ const GameScreen = ({navigation}: any) => {
         ))}
       </View>
       <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
-        <Text style={styles.resetButtonText}>{t('resetGame')}</Text>
+        <Text style={styles.resetButtonText}>{t('reset')}</Text>
       </TouchableOpacity>
+
       <TouchableOpacity style={styles.backButton} onPress={backToMenu}>
         <Text style={styles.backButtonText}>{t('backToMenu')}</Text>
       </TouchableOpacity>

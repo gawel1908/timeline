@@ -18,28 +18,28 @@ const SettingsScreen = ({navigation}: any) => {
 
   const styles = getStyles(settings.theme);
 
-  const handleChangeLanguage = () => {
+  function handleChangeLanguage() {
     const nextLanguage = settings.language === 'en' ? 'pl' : 'en';
     changeLanguage(nextLanguage); // Zmiana języka w kontekście
-  };
+  }
 
-  const handleChangeTheme = () => {
+  function handleChangeTheme() {
     setSettings(prev => ({
       ...prev,
       theme: prev.theme === 'light' ? 'dark' : 'light',
     }));
-  };
+  }
 
-  const handleSaveSettings = async () => {
+  async function handleSaveSettings() {
     try {
       await saveSettingsToStorage();
       Alert.alert(t('settingsSaved')); // Powiadomienie użytkownika o zapisaniu ustawień
     } catch (error) {
       console.error('Error saving settings:', error);
     }
-  };
+  }
 
-  const getThemeButtonStyles = () => {
+  function getThemeButtonStyles() {
     if (settings.theme === 'light') {
       return {
         backgroundColor: '#ffffff',
@@ -51,7 +51,7 @@ const SettingsScreen = ({navigation}: any) => {
         color: '#fff',
       };
     }
-  };
+  }
 
   const themeButtonStyles = getThemeButtonStyles();
 

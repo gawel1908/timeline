@@ -38,16 +38,16 @@ export const AppSettingsProvider: React.FC<SettingsProviderProps> = ({
   });
 
   // Funkcja do zapisywania ustawień w AsyncStorage
-  const saveSettingsToStorage = async () => {
+  async function saveSettingsToStorage() {
     try {
       await AsyncStorage.setItem('appSettings', JSON.stringify(settings));
     } catch (error) {
       console.error('Error saving settings to storage:', error);
     }
-  };
+  }
 
   // Funkcja do wczytywania ustawień z AsyncStorage
-  const loadSettingsFromStorage = async () => {
+  async function loadSettingsFromStorage() {
     try {
       const storedSettings = await AsyncStorage.getItem('appSettings');
       if (storedSettings) {
@@ -58,13 +58,13 @@ export const AppSettingsProvider: React.FC<SettingsProviderProps> = ({
     } catch (error) {
       console.error('Error loading settings from storage:', error);
     }
-  };
+  }
 
   // Funkcja zmieniająca język i zapisująca ustawienia
-  const changeLanguage = (newLanguage: 'en' | 'pl') => {
+  function changeLanguage(newLanguage: 'en' | 'pl') {
     i18n.changeLanguage(newLanguage); // Zmiana języka w i18n
     setSettings(prev => ({...prev, language: newLanguage}));
-  };
+  }
 
   // Ładowanie ustawień przy pierwszym uruchomieniu
   useEffect(() => {
